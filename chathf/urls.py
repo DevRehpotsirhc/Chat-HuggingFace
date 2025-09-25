@@ -17,7 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from modelos.views import procesar_texto
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", procesar_texto, name="procesar_texto"),
 ]

@@ -1,0 +1,10 @@
+<form method="post">
+  {% csrf_token %}
+  <input type="text" name="texto" placeholder="Escribe algo..." style="width:300px;">
+  <button type="submit">Enviar</button>
+</form>
+
+{% if accion %}
+  <p><strong>Acción detectada:</strong> {{ accion }}</p>
+  <p><strong>Resultado:</strong> {{ resultado }}</p>
+{% endif %}
