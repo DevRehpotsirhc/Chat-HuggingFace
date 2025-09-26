@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .modelos import analizador, respondedor, detector, traductor, tokenizer, clasificador
+from .modelos import analizador, respondedor, extractor, traductor, tokenizer, clasificador
 import re
 
 def responder(pregunta: str, contexto: str):
@@ -60,18 +60,14 @@ def detectar_idioma(texto: str):
 
     return "en"
 
-def traducir(texto: str) -> str:
-    # 1. Detectar idioma destino (mejorado)
+def traducir(texto: str):
     idioma_destino = detectar_idioma(texto)
 
-    # 2. Extraer contenido real a traducir
     match = re.search(r":\s*(.+)$", texto)
     contenido = match.group(1) if match else texto
 
-    # 3. Detectar idioma de origen del contenido
-    idioma_origen = detector(contenido, top_k=1)[0]["label"]
+    idioma_origen = extractor(contenido, top_k=1)[0]["label"] #type:ignore
 
-    # 4. Traducir solo el contenido
     tokenizer.src_lang = idioma_origen
     inputs = tokenizer(contenido, return_tensors="pt").to(traductor.device)
 
@@ -87,18 +83,18 @@ def procesar_texto(request):
     accion = None
 
     if request.method == "POST":
-        texto = request.POST.get("texto", "")
+        texto = request.POST["texto"]
 
         if texto:
-            etiquetas = ["responder", "analizar", "traducir"]
+            etiquetas = ["hace una pregunta", "da una opinión", "pide traducir"]
             clasificacion = clasificador(texto, candidate_labels=etiquetas)
             accion = clasificacion["labels"][0] #type:ignore
 
-            if accion == "responder":
+            if accion == "hace una pregunta":
                 resultado = responder(texto, contexto)
-            elif accion == "analizar":
+            elif accion == "da una opinión":
                 resultado = analizar(texto)
-            elif accion == "traducir":
+            elif accion == "pide traducir":
                 resultado = traducir(texto)
 
     return render(request, "procesar.html", {

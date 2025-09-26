@@ -1,6 +1,6 @@
 <form method="post">
   {% csrf_token %}
-  <input type="text" name="texto" placeholder="Escribe algo..." style="width:300px;">
+  <input type="text" name="texto" placeholder="Escribe algo..." style="width:300px;" required>
   <button type="submit">Enviar</button>
 </form>
 

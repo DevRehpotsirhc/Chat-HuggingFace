@@ -23,7 +23,7 @@ respondedor = pipeline(
     device=device
 )
 
-detector = pipeline(
+extractor = pipeline(
     "text-classification", 
     model="papluca/xlm-roberta-base-language-detection",
     device=device

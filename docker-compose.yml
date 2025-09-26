@@ -1,6 +1,7 @@
 services:
   backend:
-    build: .
+    build:
+      context: .
     env_file:
       - .env
     command: >
