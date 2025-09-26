@@ -1,5 +1,5 @@
 from transformers import pipeline
-from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
+from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer, AutoModelForCausalLM, AutoTokenizer
 import torch
 
 device = 0 if torch.cuda.is_available() else -1
@@ -48,3 +48,10 @@ transcriptor = pipeline(
     model="nlpconnect/vit-gpt2-image-captioning",
     device=device 
 )
+
+# Arch
+model_name_ac = "katanemo/Arch-Router-1.5B"
+model_ac = AutoModelForCausalLM.from_pretrained(
+    model_name_ac, device_map="auto", torch_dtype="auto", trust_remote_code=True
+)
+tokenizer_ac = AutoTokenizer.from_pretrained(model_name_ac)

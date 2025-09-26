@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from .modelos import analizador, respondedor, extractor, traductor, tokenizer, clasificador
 import re
+from django.http import JsonResponse 
 
 def responder(pregunta: str, contexto: str):
-    return respondedor(pregunta, contexto)["answer"] # type:ignore
+    respuesta = respondedor(pregunta, contexto)["answer"] # type:ignore
+    return JsonResponse({"response": respuesta})
 
 contexto = """
 Laura Martínez es una reconocida abogada corporativa. Ha trabajado en múltiples casos internacionales y también imparte docencia universitaria. Su experiencia y conocimientos la han convertido en una líder en su sector.
@@ -17,7 +19,8 @@ Finalmente, Sofía Ramírez es periodista tecnológica. Publica artículos en me
 """
 
 def analizar(texto: str):
-    return analizador(texto)
+    respuesta = analizador(texto)
+    return JsonResponse({"response": respuesta})
 
 
 IDIOMAS = {
@@ -75,7 +78,8 @@ def traducir(texto: str):
         **inputs,
         forced_bos_token_id=tokenizer.get_lang_id(idioma_destino)
     )
-    return tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
+    respuesta = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
+    return JsonResponse({"response": respuesta})
 
 
 def procesar_texto(request):

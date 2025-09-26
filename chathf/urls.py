@@ -18,9 +18,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from modelos.views import procesar_texto
-
+from .views import arch_router, home
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", procesar_texto, name="procesar_texto"),
+    path("", home),
+    path("api/archrouter", arch_router), #type:ignore
 ]
