@@ -22,11 +22,13 @@ async function sendMessage() {
         });
         
         const data = await response.json();
+        console.log(data);
         
-        if (data) {
-            console.log(data);
+        if (data.route) {
+            const ruta = data.route
+            console.log(ruta);
             
-            responseDiv.innerHTML = `<strong>Response:</strong> ${data.response}`;
+            responseDiv.innerHTML = `<strong>Response:</strong> ${ruta}`;
             responseDiv.style.backgroundColor = '#d4edda';
         } else {
             responseDiv.innerHTML = `<strong>Error:</strong> ${data.error}`;

@@ -19,4 +19,4 @@ EXPOSE 8000
 
 RUN python manage.py collectstatic --noinput
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "chathf.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "chathf.wsgi:application", "--workers", "3", "--timeout", "180"]

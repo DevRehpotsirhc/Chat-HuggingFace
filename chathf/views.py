@@ -1,14 +1,13 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render
 from django.http import JsonResponse
 from typing import Any, Dict, List
 import json
 
-# ____________ MODEL LOADING ________________________
 from transformers import AutoModelForCausalLM, AutoTokenizer, M2M100ForConditionalGeneration, M2M100Tokenizer
 from transformers import pipeline
 import re
-
+import ast
 
 detector = pipeline(
     "text-classification", 
@@ -22,13 +21,9 @@ model_ac = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer_ac = AutoTokenizer.from_pretrained(model_name_ac)
 
-
-#  _______________ app routing for views _________________ #
 def home(request):
     return render(request, "chathf/home.html")
 
-
-#  __________ app routing for various endpoints __________ #
 @csrf_exempt
 def arch_router(request):
     data = json.loads(request.body)
@@ -38,8 +33,6 @@ def arch_router(request):
 
     message = traducir(message) 
 
-
-    # Please use our provided prompt for best performance
     TASK_INSTRUCTION = """
     You are a helpful assistant designed to find the best suited route.
     You are provided with route description within <routes></routes> XML tags:
@@ -66,7 +59,6 @@ def arch_router(request):
     {"route": "route_name"} 
     """
 
-    # Define route config
     route_config = [
         {
             "name": "question answering",
@@ -94,7 +86,6 @@ def arch_router(request):
         }
     ]
 
-    # Helper function to create the system prompt for our model
     def format_prompt(
         route_config: List[Dict[str, Any]], conversation: List[Dict[str, Any]]
     ):
@@ -104,8 +95,6 @@ def arch_router(request):
             )
             + FORMAT_PROMPT
         )
-
-    # Define conversations
 
     conversation = [
         {
@@ -124,55 +113,46 @@ def arch_router(request):
         messages, add_generation_prompt=True, return_tensors="pt"
     ).to(model_ac.device)
 
-    # 2. Generate
     generated_ids = model_ac.generate(
-        input_ids=input_ids,  # or just positional: model.generate(input_ids, …)
+        input_ids=input_ids,
         max_new_tokens=512,
     )
 
-    # 3. Strip the prompt from each sequence
-    prompt_lengths = input_ids.shape[1]  # same length for every row here
+    prompt_lengths = input_ids.shape[1]
     generated_only = [
-        output_ids[prompt_lengths:]  # slice off the prompt tokens
+        output_ids[prompt_lengths:]
         for output_ids in generated_ids
     ]
 
-    # 4. Decode if you want text
-    response = tokenizer_ac.batch_decode(generated_only, skip_special_tokens=True)[0]
-
-    print("MODEL CLASSIFYER RESPONSE: _______ \n", response)
+    response_text = tokenizer_ac.batch_decode(generated_only, skip_special_tokens=True)[0]
+    print("RAW RESPONSE:", response_text, type(response_text))
 
     try:
-        # Try parsing as JSON (since model outputs {"route": "..."} format)
-        response_data = json.loads(response)
-        route = response_data.get("route", "unknown topic")
-            
-        
-        print(route)
+        response_dict = ast.literal_eval(response_text)
+        route = response_dict.get("route", "unknown_topic")
+        print("ROUTE:", route)
 
-        match route:
-            case "translate":
-                print("must send to translation function")
-                return route
-            case "question answering":
-                print("must send to QA function")
-                return route
-            case "text clasification":
-                print("must send to classification function")
-                return route
-            case "object detection":
-                print("must send to object detection function")
-                return route
-            case "describing an image":
-                print("must send to CV describing function")
-                return route
-            case "unknown topic":
-                print("must send to another app cuz there is nothing to do here")
-                return route
+        if route == 'question answering':
+            print('question answering')
+        elif route == 'translate':
+            print('text clasification')
+        elif route == 'text clasification':
+            print('text clasification')
+        elif route == 'object detection':
+            print('object detection')
+        elif route == 'describing an image':
+            print('describing an image')
+        else: 
+            print('unknown topic')
 
-    except json.JSONDecodeError:
-        route = response.strip()
+        return JsonResponse({"route": route})
 
+    except Exception as e:
+        print("Parse error:", e)
+        return JsonResponse(
+            {"error": "Failed to parse model output", "details": str(e)},
+            status=400
+        )
 
 # ___________________ TRANSALATION LOGIC ____________________________
 model_name_tr = "facebook/m2m100_418M"
