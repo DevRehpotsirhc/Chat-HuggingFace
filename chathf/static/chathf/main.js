@@ -2,6 +2,7 @@ console.log('the js is actually running');
 
 async function sendMessage() {
     const input = document.getElementById('inputMessage');
+    const file = document.getElementById('fileInput').files[0];
     const responseDiv = document.getElementById('response');
     const message = input.value;
     
@@ -17,18 +18,19 @@ async function sendMessage() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                message: message
+                message: message,
+                file: file
             })
         });
         
         const data = await response.json();
         console.log(data);
         
-        if (data.route) {
-            const ruta = data.route
-            console.log(ruta);
+        if (data.answer) {
+            const respuesta = data.answer
+            console.log(respuesta);
             
-            responseDiv.innerHTML = `<strong>Response:</strong> ${ruta}`;
+            responseDiv.innerHTML = `<strong>Response:</strong> ${respuesta}`;
             responseDiv.style.backgroundColor = '#d4edda';
         } else {
             responseDiv.innerHTML = `<strong>Error:</strong> ${data.error}`;

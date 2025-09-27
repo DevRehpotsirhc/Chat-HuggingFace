@@ -38,10 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "nlp",
-    "cv",
-    "ml",
-    "chathf",
+    "modelos.apps.ModelosConfig",
 ]
 
 MIDDLEWARE = [
