@@ -11,6 +11,7 @@ import ast
 
 from .hf_models import HF_Models
 
+# --------- Esto es un error de sintaxis para django, Models es un modulo de django para usar el ORM y lo estás sobreescribiendo ---------
 class Models:
 
     @staticmethod
@@ -136,22 +137,23 @@ class Models:
         
         return response_text
 
+    # Estas funciones las usas dentro de la clase como si fueran métodos pero no usas self, podrías usarla fuera perfectamente 
     def QA(question, context):
         if not context:
             return {"error": "No context given"}
         if not question:
             return {"error": "No question given"}
 
-        return {"answer": HF_Models.respondedor(question, context)}
+        return {"answer": HF_Models.respondedor(question, context)} #type:ignore
 
     def describe_images(image):
         if not image:
             return {"error": "No image given"}
         
-        return {"answer": HF_Models.transcriptor(image)}
+        return {"answer": HF_Models.transcriptor(image)} #type:ignore
 
     def detector(image):
         if not image:
             return {"error": "No image given"}
         
-        return {"answer": HF_Models.detector(image)}
+        return {"answer": HF_Models.detector(image)} #type:ignore

@@ -45,7 +45,7 @@ def arch_router(request):
                     if uploaded_file.name.lower().endswith(text_valid_extensions):
                         return JsonResponse({"error": "File must be a TXT file."}, status=415)
                     
-                    result = Models.QA(message, context)
+                    result = Models.QA(message, context) # context no existe en esta posición
 
                     if "error" in result:
                         return JsonResponse(result, status=406)
@@ -77,7 +77,7 @@ def arch_router(request):
                     if not uploaded_file.name.lower().endswith(img_valid_extensions):
                         return JsonResponse({"error": "Invalid file extension. Only JPG, JPEG, PNG, and WEBP are allowed."}, status=415)
                     
-                    result = Models.describe(uploaded_file)
+                    result = Models.describe(uploaded_file)     # Models no tiene ningun método llamado describe así que no sé qué quieres hacer acá
 
                     if "error" in result:
                         return JsonResponse(result, status=406)

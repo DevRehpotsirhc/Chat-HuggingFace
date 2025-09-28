@@ -23,10 +23,10 @@ class HF_Models:
     @staticmethod
     def analizador():
         analizador = pipeline(
-            "sentiment-analysis",
+            "sentiment-analysis", #type:ignore
             model="nlptown/bert-base-multilingual-uncased-sentiment",
             device=device
-        )
+        ) #type:ignore
         return analizador
 
     @staticmethod
