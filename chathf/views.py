@@ -9,7 +9,7 @@ def home(request):
 
 @csrf_exempt
 def arch_router(request):
-    from modelos.models import Models
+    from modelos.models_wrapper import Models_Wrapper as Models
 
     data = json.loads(request.body)
     message = data['message']
@@ -45,7 +45,9 @@ def arch_router(request):
                     if uploaded_file.name.lower().endswith(text_valid_extensions):
                         return JsonResponse({"error": "File must be a TXT file."}, status=415)
                     
-                    result = Models.QA(message, context) # context no existe en esta posición
+                    context = uploaded_file.read().decode('utf-8')
+
+                    result = Models.QA(message, context)
 
                     if "error" in result:
                         return JsonResponse(result, status=406)
@@ -77,7 +79,7 @@ def arch_router(request):
                     if not uploaded_file.name.lower().endswith(img_valid_extensions):
                         return JsonResponse({"error": "Invalid file extension. Only JPG, JPEG, PNG, and WEBP are allowed."}, status=415)
                     
-                    result = Models.describe(uploaded_file)     # Models no tiene ningun método llamado describe así que no sé qué quieres hacer acá
+                    result = Models.describe_images(uploaded_file)
 
                     if "error" in result:
                         return JsonResponse(result, status=406)

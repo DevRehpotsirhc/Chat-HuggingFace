@@ -48,14 +48,14 @@ class HF_Models:
         return extractor
     
     @staticmethod
-    def respondedor():
-        respondedor = pipeline(
+    def QA():
+        QA = pipeline(
             "question-answering",
             model="deepset/xlm-roberta-base-squad2",
             device=device
         )
         
-        return respondedor
+        return QA
 
     @staticmethod
     def traductor():

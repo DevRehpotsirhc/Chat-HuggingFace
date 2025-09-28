@@ -1,44 +1,51 @@
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
-from django.http import JsonResponse
 from typing import Any, Dict, List
 import json
-
-from transformers import AutoModelForCausalLM, AutoTokenizer, M2M100ForConditionalGeneration, M2M100Tokenizer
-from transformers import pipeline
-import re
-import ast
-
 from .hf_models import HF_Models
 
-# --------- Esto es un error de sintaxis para django, Models es un modulo de django para usar el ORM y lo estás sobreescribiendo ---------
-class Models:
+class Models_Wrapper:
+    def __init__(self):
+        self._translator = None
+        self._router = None
+        self._transcriptor_pipeline = None
+        self._detector_pipeline = None
+        self._qa_pipeline = None
 
-    @staticmethod
-    def traducir(texto: str) -> str:
+    @property
+    def translator(self):
+        if self._translator is None:
+            print("Loading translator model...")
+            self._translator = HF_Models.traductor()
+        return self._translator
 
-        tokenizer, model = HF_Models.traductor()
-        detector = HF_Models.detector()
+    @property
+    def router_model(self):
+        if self._router is None:
+            print("Loading router model...")
+            self._router = HF_Models.router()
+        return self._router
 
-        match = re.search(r":\s*(.+)$", texto)
-        contenido = match.group(1) if match else texto
+    @property
+    def transcriptor_pipeline(self):
+        if self._transcriptor_pipeline is None:
+            print("Loading transcriptor pipeline...")
+            self._transcriptor_pipeline = HF_Models.transcriptor
+        return self._transcriptor_pipeline
 
-        idioma_origen = detector(contenido, top_k=1)[0]["label"]
+    @property
+    def detector_pipeline(self):
+        if self._detector_pipeline is None:
+            print("Loading detector pipeline...")
+            self._detector_pipeline = HF_Models.detector
+        return self._detector_pipeline
 
-        tokenizer.src_lang = idioma_origen
-        inputs = tokenizer(contenido, return_tensors="pt").to(model.device)
+    @property
+    def qa_pipeline(self):
+        if self._qa_pipeline is None:
+            print("Loading QA pipeline...")
+            self._qa_pipeline = HF_Models.QA
+        return self._qa_pipeline
 
-        generated_tokens = model.generate(
-            **inputs,
-            forced_bos_token_id=tokenizer.get_lang_id("en")
-        )
-        response = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-        print("THIS IS INSIDE THE TRANSLATE FUNCTION: ___________", response)
-        
-        return response
-
-    @staticmethod
-    def router(message):
+    def router(self, message):
 
         TASK_INSTRUCTION = """
         You are a helpful assistant designed to find the best suited route.
@@ -116,13 +123,13 @@ class Models:
             {"role": "user", "content": route_prompt},
         ]
         
-        tokenizer, model = HF_Models.router()
+        tokenizer_rt, model_rt = self.router_model
 
-        input_ids = tokenizer.apply_chat_template(
+        input_ids = tokenizer_rt.apply_chat_template(
             messages, add_generation_prompt=True, return_tensors="pt"
-        ).to(model.device)
+        ).to(model_rt.device)
 
-        generated_ids = model.generate(
+        generated_ids = model_rt.generate(
             input_ids=input_ids,
             max_new_tokens=512,
         )
@@ -133,27 +140,40 @@ class Models:
             for output_ids in generated_ids
         ]
 
-        response_text = tokenizer.batch_decode(generated_only, skip_special_tokens=True)[0]
+        response_text = tokenizer_rt.batch_decode(generated_only, skip_special_tokens=True)[0]
         
         return response_text
 
-    # Estas funciones las usas dentro de la clase como si fueran métodos pero no usas self, podrías usarla fuera perfectamente 
-    def QA(question, context):
+    def traducir(self, texto: str) -> str:
+        match = re.search(r":\s*(.+)$", texto)
+        contenido = match.group(1) if match else texto
+
+        tokenizer_tr, model_tr = self.translator 
+
+        idioma_origen = self.detector_pipeline(contenido, top_k=1)[0]["label"]
+
+        tokenizer_tr.src_lang = idioma_origen
+        inputs = tokenizer_tr(contenido, return_tensors="pt").to(model_tr.device)
+
+        generated_tokens = model_tr.generate(
+            **inputs,
+            forced_bos_token_id=tokenizer_tr.get_lang_id("en")
+        )
+        return tokenizer_tr.batch_decode(generated_tokens, skip_special_tokens=True)[0]
+
+    def qa(self, question, context):
         if not context:
             return {"error": "No context given"}
         if not question:
             return {"error": "No question given"}
+        return {"answer": self.qa_pipeline(question, context)}
 
-        return {"answer": HF_Models.respondedor(question, context)} #type:ignore
-
-    def describe_images(image):
+    def describe_images(self, image):
         if not image:
             return {"error": "No image given"}
-        
-        return {"answer": HF_Models.transcriptor(image)} #type:ignore
+        return {"answer": self.transcriptor_pipeline(image)}
 
-    def detector(image):
+    def detect(self, image):
         if not image:
             return {"error": "No image given"}
-        
-        return {"answer": HF_Models.detector(image)} #type:ignore
+        return {"answer": self.detector_pipeline(image)}
