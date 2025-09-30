@@ -28,7 +28,7 @@ services:
       HF_HOME: /app/hf_models
       HUGGINGFACE_HUB_TOKEN: ${HF_TOKEN}
 
-    gpus: all
+    # gpus: all
 
   db:
     image: postgres:15

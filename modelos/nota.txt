@@ -1,1 +1,0 @@
-A esta aplicación le falta el archivo apps.py, muy importante para la configuración, no sé si lo que hiciste fue crear todo manualmente o quitaste los archivos, pero eso es necesario para el funcionamiento

@@ -10,17 +10,18 @@ async function sendMessage() {
         alert('Please type something!');
         return;
     }
+
+    const formData = new FormData();
+    formData.append('message', message)
     
+    if (file) {
+        formData.append('file', file);
+    }
+
     try {
         const response = await fetch('/api/archrouter', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: message,
-                file: file
-            })
+            body: formData
         });
         
         const data = await response.json();

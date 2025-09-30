@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
 import json
 from .hf_models import HF_Models
+import re
 
 class Models_Wrapper:
     def __init__(self):
@@ -28,21 +29,21 @@ class Models_Wrapper:
     def transcriptor_pipeline(self):
         if self._transcriptor_pipeline is None:
             print("Loading transcriptor pipeline...")
-            self._transcriptor_pipeline = HF_Models.transcriptor
+            self._transcriptor_pipeline = HF_Models.transcriptor()
         return self._transcriptor_pipeline
 
     @property
     def detector_pipeline(self):
         if self._detector_pipeline is None:
             print("Loading detector pipeline...")
-            self._detector_pipeline = HF_Models.detector
+            self._detector_pipeline = HF_Models.detector()
         return self._detector_pipeline
 
     @property
     def qa_pipeline(self):
         if self._qa_pipeline is None:
             print("Loading QA pipeline...")
-            self._qa_pipeline = HF_Models.QA
+            self._qa_pipeline = HF_Models.QA()
         return self._qa_pipeline
 
     def router(self, message):
@@ -166,7 +167,9 @@ class Models_Wrapper:
             return {"error": "No context given"}
         if not question:
             return {"error": "No question given"}
-        return {"answer": self.qa_pipeline(question, context)}
+        
+        result = self.qa_pipeline({"question": question, "context": context})
+        return {"answer": result["answer"]}
 
     def describe_images(self, image):
         if not image:
