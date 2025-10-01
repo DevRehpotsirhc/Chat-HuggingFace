@@ -171,12 +171,15 @@ class Models_Wrapper:
         result = self.qa_pipeline({"question": question, "context": context})
         return {"answer": result["answer"]}
 
-    def describe_images(self, image):
-        if not image:
-            return {"error": "No image given"}
-        return {"answer": self.transcriptor_pipeline(image)}
+    def describe_images(self, image_path):
+        if not image_path:
+            return {"error": "No image path given"}
+        return {"answer": self.transcriptor_pipeline(image_path)[0]["generated_text"]}
 
     def detect(self, image):
         if not image:
             return {"error": "No image given"}
-        return {"answer": self.detector_pipeline(image)}
+        
+        response = self.detector_pipeline(image)
+        html_string =  json.dumps(response, ident=2)
+        return {"answer": html_string}

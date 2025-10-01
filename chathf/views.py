@@ -1,8 +1,11 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
+from django.core.files.storage import FileSystemStorage
 from django.http import JsonResponse
+from django.conf import settings
 import json
 import ast
+import os
 from modelos.models_wrapper import Models_Wrapper as Models
 
 models = Models()
@@ -15,6 +18,7 @@ def arch_router(request):
 
     message = None
     uploaded_file = None
+    file_path = None
 
     if request.content_type == 'application/json':
         data = json.loads(request.body)
@@ -31,7 +35,18 @@ def arch_router(request):
     if uploaded_file:
         if not uploaded_file.name.lower().endswith(img_valid_extensions + text_valid_extensions):
             return JsonResponse({"error": "Invalid file extension. Only JPG, JPEG, PNG, WEBP, TXT, and CSV are allowed."}, status=415)
-    
+            
+        if uploaded_file.name.lower().endswith(img_valid_extensions):
+            fs = FileSystemStorage(
+                location=settings.MEDIA_ROOT / "chathf/images",
+                base_url=settings.MEDIA_URL + "chathf/images/"
+            )
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            file_path = fs.path(filename)
+
+            print("File uploaded successfully.", "\n file_path:", file_path)
+
+
     classified_prompt = models.router(message)
 
     print("\n ______________________________________ \n RAW RESPONSE:", classified_prompt, type(classified_prompt) , "\n ______________________________________ \n ")
@@ -75,7 +90,7 @@ def arch_router(request):
                     if not uploaded_file.name.lower().endswith(img_valid_extensions):
                         return JsonResponse({"error": "File must be an IMG file."}, status=415)
 
-                    result = models.detector(uploaded_file)
+                    result = models.detector(file_path)
 
                     if "error" in result:
                         return JsonResponse(result, status=406)
@@ -90,7 +105,7 @@ def arch_router(request):
                     if not uploaded_file.name.lower().endswith(img_valid_extensions):
                         return JsonResponse({"error": "Invalid file extension. Only JPG, JPEG, PNG, and WEBP are allowed."}, status=415)
                     
-                    result = models.describe_images(uploaded_file)
+                    result = models.describe_images(file_path)
 
                     if "error" in result:
                         return JsonResponse(result, status=406)
