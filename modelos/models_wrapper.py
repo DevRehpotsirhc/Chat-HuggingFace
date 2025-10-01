@@ -181,5 +181,5 @@ class Models_Wrapper:
             return {"error": "No image given"}
         
         response = self.detector_pipeline(image)
-        html_string =  json.dumps(response, ident=2)
+        html_string = json.dumps(response, indent=2)
         return {"answer": html_string}

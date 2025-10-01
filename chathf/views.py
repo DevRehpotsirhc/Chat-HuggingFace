@@ -90,7 +90,7 @@ def arch_router(request):
                     if not uploaded_file.name.lower().endswith(img_valid_extensions):
                         return JsonResponse({"error": "File must be an IMG file."}, status=415)
 
-                    result = models.detector(file_path)
+                    result = models.detect(file_path)
 
                     if "error" in result:
                         return JsonResponse(result, status=406)
